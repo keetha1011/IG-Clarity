@@ -5,18 +5,16 @@ This Program checks the followers and followings. Then displays who all aren't f
 
 **Requirements**
 
-bs4, flet 
+bs4
 	
- 	pip install bs4 flet
+ 	pip install bs4
 
 **Enter the full path of the zip file downloaded (containing the personal data) from the Instagram account center to make it work.**
 
-In case of Windows:   {If the file is in the User directory}
-	
- 	%USERPROFILE%\\path_to_file\\file_name.zip  
+    python IG-Clarity.py "PATH_TO_THE_FILE"   
 
-In case of Linux/Mac:  {If the file is in the Home directory}
+**You can also create a directory with only two files, say this script and your downloaded zip file as run this script without any arguments**
 
-	~/path_to_file/file_name.zip              
+**If you are going with second method then MAKE SURE THERE IS ONLY ONE FILE ENDING WITH .zip EXTENSION**
 
 Have a nice day 😊

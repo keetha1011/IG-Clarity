@@ -1,53 +1,58 @@
-import flet as ft
-import modules.logic as logic
+import os
+import sys
+import zipfile
+from bs4 import BeautifulSoup
 
 
-def main(page: ft.Page):
-    page.title = "IG-Clarity"
-    page.vertical_alignment = ft.MainAxisAlignment.CENTER
-    img = ft.Image(src=f"icons/ig.png", width=400, height=400)
-    txt_box_1 = ft.TextField(label="Path for the zip file", width=500)
-    # lv = ft.ListView(expand=False, spacing=10, height=300, width=400)
+def extractor(content):
+    soup = BeautifulSoup(content, 'html.parser')
+    a_elements = soup.find_all('a')
+
+    people_list = []
+    for a in a_elements:
+        people_list.append(a.text)
+
+    del soup, a_elements
+
+    return people_list
 
 
-    def btn_click(e):
-        if not txt_box_1.value:
-            page_alternate_layout_1()
-            txt_box_1.error_text = '''Please input the path\nI won't search your computer for that file 🙂'''
-            ft.Row([txt_box_1], alignment=ft.MainAxisAlignment.START)
-            page.update()
-        else:
-            # page_alternate_layout_1()
-            logic_process()
+def logic(path) -> list:
+    """
 
-    def logic_process():
-        path = txt_box_1.value
-        # for i in (logic.logic(path)):
-        #     lv.controls.append(ft.Text(i))
-        # page.add(lv)
-        for i in logic.logic(path):
-            page.add(ft.Column([ft.Row([ft.Text(i)], alignment=ft.MainAxisAlignment.CENTER)]))
-        page.scroll = "always"
-        page.update()
+    :rtype: object
+    """
+    with zipfile.ZipFile(path, "r") as source:
+        with source.open("connections/followers_and_following/following.html") as following_file:
+            following = extractor(following_file.read())
+        with source.open("connections/followers_and_following/followers_1.html") as follower_file:
+            follower = extractor(follower_file.read())
 
-    # def progress_bar():
-    #     page.add(ft.Text("Indeterminate progress bar", style="headlineSmall"))
-    #     page.add(ft.ProgressBar(width=400, color="amber", bgcolor="#eeeeee"))
+        listed = []
+        for i in following:
+            if i not in follower:
+                listed.append(i)
 
-    def page_alternate_layout_1():
-        page.clean()
-        page.add(ft.Row([txt_box_1], alignment=ft.MainAxisAlignment.START))
-        page.add(ft.Row([ft.ElevatedButton("Start Checking", height=50, width=500, on_click=btn_click)],
-                        alignment=ft.MainAxisAlignment.START))
-
-    page.add(
-        ft.Column(
-            [ft.Row([img], alignment=ft.MainAxisAlignment.CENTER),
-            ft.Row([txt_box_1], alignment=ft.MainAxisAlignment.CENTER),
-            ft.Row([ft.ElevatedButton("Start Checking", height=50, width=500, on_click=btn_click)],
-               alignment=ft.MainAxisAlignment.CENTER)]
-        )
-    )
+    return listed
 
 
-ft.app(target=main)
+def program():
+    try:
+        path_for_file = sys.argv[1]
+    except:
+        print("You did not define file\nReading zip file from current directory\n")
+        try:
+            files = [file for file in os.listdir(os.getcwd()) if file.lower().endswith(".zip")]
+            path_for_file = files[0]
+        except:
+            print("Zip file does not exist in current directory?\n")
+
+    try:
+        print("These ppl didn't follow you back!")
+        for i in logic(path_for_file):
+            print(i)
+    except:
+        print("The process failed. Check the file location or ensure the zip file is in same directory as this script")
+
+
+program()
